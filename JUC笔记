@@ -1,0 +1,269 @@
+1.创建线程
+
+1.1创建线程的五种方式
+
+1.1.1继承Thread类
+
+通过继承Thread类型,并重写其run()方法,run()方法中定义执行的任务.
+
+创建后的子类通过调用start()方法即可执行线程方法
+
+此方法实现的线程类,多个线程无法共享线程类的实例变量,原因是需要创建不同的Thread对象,资源自然不共享.
+
+    /**
+     * 1.继承Thread类
+     * 2.重写run方法
+     * 3.创建UserThread对象
+     * 4.调用start()方法
+     */
+    public class UserThread extends Thread {
+        
+        // 继承Thread类,并不是所有的的方法都需要多线程执行,所以重写run方法,将需要多线程执行的代码放在run方法中
+        @Override
+        public void run() {
+            for (int i = 0; i < 10; i++) {
+                System.out.println(Thread.currentThread().getName() + " is running " + i);
+            }
+        }
+    }
+    
+    public class UserThreadTest {
+        public static void main(String[] args) {
+            new UserThread().start();
+            new UserThread().start();
+        }
+    }
+    // 结果
+    Thread-0 is running 0
+    Thread-0 is running 1
+    Thread-0 is running 2
+    Thread-0 is running 3
+    Thread-0 is running 4
+    Thread-0 is running 5
+    Thread-1 is running 0
+    Thread-1 is running 1
+    Thread-1 is running 2
+    Thread-1 is running 3
+    Thread-1 is running 4
+    Thread-1 is running 5
+    Thread-1 is running 6
+    Thread-0 is running 6
+    Thread-0 is running 7
+    Thread-0 is running 8
+    Thread-0 is running 9
+    Thread-1 is running 7
+    Thread-1 is running 8
+    Thread-1 is running 9
+
+1.1.2实现runable接口
+
+需要先定义一个类实现Runnable接口并重写该接口的run()方法，此run方法是线程执行体。
+
+接着创建 Runnable实现类的对象，作为创建Thread对象的参数target，此Thread对象才是真正的线程对象.
+
+利用实现Runable接口的线程类创建对象,可以实现线程间的资源共享
+
+    /**
+     * 1.实现Runnable接口
+     * 2.重写run方法
+     * 3.创建实现类对象
+     * 4.创建Thread对象,把实现类对象作为构造方法的参数,调用start
+     */
+    public class UserRun implements Runnable{
+        @Override
+        public void run() {
+            for (int i = 0; i < 5; i++) {
+                System.out.println(Thread.currentThread().getName() + " is running " + i);
+            }
+        }
+    }
+    public class UserTest {
+        public static void main(String[] args) {
+            UserRun userRun = new UserRun();
+            new Thread(userRun).start();
+            new Thread(userRun).start();
+        }
+    }
+    // 结果
+    Thread-1 is running 0
+    Thread-0 is running 0
+    Thread-0 is running 1
+    Thread-0 is running 2
+    Thread-0 is running 3
+    Thread-0 is running 4
+    Thread-1 is running 1
+    Thread-1 is running 2
+    Thread-1 is running 3
+    Thread-1 is running 4
+
+1.1.3实现Callable接口实现带有返回值的线程
+
+	Callable接口如同Runnable接口的升级版，其提供的call()方法将作为线程的执行体，同时允许有返回值。
+
+	Callable对象不能直接作为Thread对象的target ，因为Callable接口是 Java5 新增的接口，不是Runnable接口的子接口。
+
+	对于这个问题的解决方案，就引入Future接口，此接口可以接受call() 的返回值，RunnableFuture接口是Future接口和Runnable接口的子接口，可以作为Thread对象的target。
+
+    /**
+     * 1.定义类实现Callable接口
+     * 2.重写call()方法
+     * 3.创建实现类对象
+     * 4.创建RunnableFuture接口的子类FutureTask对象，构造参数为实现类对象
+     * 5.创建Thread类，构造参数为FutureTask对象
+     * 6.启动线程，接收参数
+     */
+    public class UserCallable implements Callable {
+        @Override
+        public Object call() throws Exception {
+            System.out.println(Thread.currentThread().getName() + " is running " + "学习");
+            return "学习";
+        }
+    }
+    public class UserCallableTest {
+        public static void main(String[] args) throws ExecutionException, InterruptedException {
+            // 创建实现类对象
+            UserCallable userCallable = new UserCallable();
+            // 将实现类对象作为Future类的构造参数
+            FutureTask futureTask = new FutureTask(userCallable);
+            // 创建Thread对象
+            Thread thread = new Thread(futureTask);
+            // 调用run方法
+            thread.run();
+            // 输出获取的返回值
+            System.out.println(futureTask.get());
+        }
+    }
+    // 结果
+    Thread-0 is running 学习
+    学习
+
+1.1.4继承TimerTask:
+
+Timer和TimerTask可以做为实现线程的另一种方式。
+
+Timer是一种线程设施，用于安排以后在后台线程中抠行的任务。可安排任务执行一次，或者定期重复执行，可以看成一个定时器，可以调度TimerTask。
+
+TimerTask是一个抽象类，实现了Runnable接口，所以具备了多线程的能力。
+
+    /**
+     * 1.创建类继承TimerTask，重写run()方法
+     * 2.创建子类对象
+     * 3.创建Timer对象，并调用schedule()方法，子类对象作为该方法的参数传入，另外两个参数分别为延迟时间，执行周期
+     */
+    public class UserTask extends TimerTask {
+        @Override
+        public void run() {
+            System.out.println(Thread.currentThread().getName() + " is running " + new Date());
+        }
+    }
+    public class UserTaskTest {
+        public static void main(String[] args) {
+            UserTask userTask = new UserTask();
+            Timer timer = new Timer();
+            timer.schedule(userTask,5000,3000);
+        }
+    }
+    // 结果
+    Timer-0 is running Fri Mar 25 16:11:37 CST 2022
+    Timer-0 is running Fri Mar 25 16:11:40 CST 2022
+    Timer-0 is running Fri Mar 25 16:11:43 CST 2022
+    Timer-0 is running Fri Mar 25 16:11:46 CST 2022
+        。。。
+
+1.1.5线程池
+
+通过Executors 的工具类可以创建线程池。
+
+提高系统响应速度，当有任务到达时，通过复用已存在的线程，无需等待新线程的创建便能立即执行。
+
+降低系统资源消耗，通过重用已存在的线程，降低线程创建和销毁造成的消耗。
+
+方便线程并发数的管控。因为线程若是无限制的创建，可能会导致内存占用过多而产生OOM ，并且
+
+会造成cpu过度切换.
+
+1.1.5.1固定大小的线程池
+
+    /**
+     * 固定大小的线程池
+     */
+    public class FixThreadPoolTest {
+        public static void main(String[] args) {
+            // 调用Executors.newFixedThreadPool(线程数量)创建固定大小的线程池
+            ExecutorService pool = Executors.newFixedThreadPool(3);
+            // 利用循环执行5次任务
+            for (int i = 0; i < 5; i++) {
+                // pool.submit(匿名内部类实现Runnable接口重写run()方法创建线程)
+                pool.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (int j = 0; j < 5; j++) {
+                            System.out.println(Thread.currentThread().getName() + " is running " + j);
+                        }
+                    }
+                });
+            }
+            // 释放资源
+            pool.shutdown();
+        }
+    }
+    
+    // 结果
+    pool-1-thread-2 is running 0
+    pool-1-thread-1 is running 0
+    pool-1-thread-1 is running 1
+    pool-1-thread-1 is running 2
+    pool-1-thread-1 is running 3
+    pool-1-thread-1 is running 4
+    pool-1-thread-3 is running 0
+    pool-1-thread-3 is running 1
+    pool-1-thread-3 is running 2
+    pool-1-thread-3 is running 3
+    pool-1-thread-3 is running 4
+    pool-1-thread-3 is running 0
+    pool-1-thread-3 is running 1
+    pool-1-thread-3 is running 2
+    pool-1-thread-3 is running 3
+    pool-1-thread-3 is running 4
+    pool-1-thread-1 is running 0
+    pool-1-thread-1 is running 1
+    pool-1-thread-1 is running 2
+    pool-1-thread-2 is running 1
+    pool-1-thread-1 is running 3
+    pool-1-thread-2 is running 2
+    pool-1-thread-1 is running 4
+    pool-1-thread-2 is running 3
+    pool-1-thread-2 is running 4
+
+1.1.5.2单线程池
+
+    /**
+     * 单线程池：该线程池中只有一个线程，可以保证串行的执行任务，执行顺序是按照任务提交顺序执行
+     * 并且如果当前这个线程异常终止了，会有一个新的线程来代替它继续执行任务
+     */
+    public class SingleThreadPoolExecutorTest {
+    
+        public static void main(String[] args) {
+            // 创建单线程池
+            ExecutorService pool = Executors.newSingleThreadExecutor();
+            for (int i = 0; i < 3; i++) {
+                pool.submit(() -> {
+                    for (int j = 0; j < 3; j++) {
+                        System.out.println(Thread.currentThread().getName() + " is running " + j);
+                    }
+                });
+            }
+            // 释放资源
+            pool.shutdown();
+        }
+    }
+    // 结果
+    pool-1-thread-1 is running 0
+    pool-1-thread-1 is running 1
+    pool-1-thread-1 is running 2
+    pool-1-thread-1 is running 0
+    pool-1-thread-1 is running 1
+    pool-1-thread-1 is running 2
+    pool-1-thread-1 is running 0
+    pool-1-thread-1 is running 1
+    pool-1-thread-1 is running 2
