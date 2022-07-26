@@ -268,7 +268,7 @@ TimerTask是一个抽象类，实现了Runnable接口，所以具备了多线程
     pool-1-thread-1 is running 1
     pool-1-thread-1 is running 2
     
-    1.ArrayList和linkedList的区别
+1.ArrayList和linkedList的区别
 	ArrayList底层数据结构是数组,它就像一个可以自动扩容的数组,额外定义了get,set方法,由于基于索引,所以获取数据速度快,删除数据和向中间插入数据速度慢,因为涉及到了数据的移动.内存空间是连续的,必须保证内存中有连续的空间足够存放其中的数据
 	LinkedList底层是一个双向链表,额外定义了操作表头和表尾数据的方法,添加和删除快,但是查询速度慢,存储空间上是链式存储,开辟内存时要求低
 2.equals与==的区别
@@ -280,7 +280,9 @@ TimerTask是一个抽象类，实现了Runnable接口，所以具备了多线程
 	浅层拷贝对于基本数据类型来说就是值的复制,对于引用类型的数据是对引用的复制,两个对象对象的只想堆中同一个对象
 	深层拷贝基本数据类型也是值的拷贝,对于引用类型的数据就是创建一个新的对象,拷贝出来的对象的修改不会影响元对象
 4.hashmap
-
+	在java 1.7,hashmap使用的是数组加链表
+	1.8之后使用的是数组加链表加红黑树
+	
 5.代理
 	代理的作用就是想要在不修改原有代码的前提下新增一些功能.
 	分为静态代理和动态代理,静态代理的灵活性要差一些,比如接口的修改会影响到代理类和目标类
@@ -290,4 +292,15 @@ TimerTask是一个抽象类，实现了Runnable接口，所以具备了多线程
 	jdk动态带来就是通过是实现invocationhandler接口的类型实现功能增强,通过工厂类获取对象.Proxy.newProxyIntance(目标类),但是限制是目标类必须实现接口
 	cglib代理可以解决jdk必须要实现接口的问题,比如spring的aop就是如果对象实现了接口就是用jdk代理,否则使用cglib代理
 	cglib动态代理使用的原理是拦截器,通过生成一个被代理的子类拦截目标方法,达到增强的目的
+6.hashmap与hashtable的区别
+hashmap底层的数据结构是数组加链表加红黑树,hashtable是数组加链表
+通过在每个方法中加上sychronize关键字hashtable线程安全,hashmap线程不安全
+hashmap支持key为null,但是只能有一个key为null,hashtable不支持
+hashmap在初始化未设置长度时,默认数组长度为16,后续扩容为2n,hashtable初始数组长度是11,扩容为2n+1
+jdk1.8以后hashmap新增了解决hash冲突时,如果链表长度超过了8,先确认数组长度是否超过了64,是则转为红黑树,否则扩容,目的是为了减少搜索时间,hashtable没有这种机制
+7.hashmap与hashset的区别
+hashset底层是基于hashmap实现的,hashset额外实现了clone,readobject,writeobject方法,其他都是直接调用了hashmap方法
+8.hashmap与treemap
+二者的父类都是abstractMap,treemap又实现了navigablemap与sortmap,前者让它可以实现对元素的搜索,后者让它具备了根据键值排序的能力
+
 
